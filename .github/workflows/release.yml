@@ -21,6 +21,7 @@ jobs:
   package:
     name: Apple Silicon app
     runs-on: macos-15
+    environment: ${{ startsWith(github.ref, 'refs/tags/v') && 'production' || 'dev' }}
     timeout-minutes: 30
     env:
       BAML_TELEMETRY: "off"
@@ -77,7 +78,7 @@ jobs:
         with:
           name: Tafo-macos-arm64
           path: release
-      - name: Publish development preview
+      - name: Publish release preview
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
@@ -85,4 +86,4 @@ jobs:
         run: |
           gh release create "$RELEASE_TAG" release/* --verify-tag --prerelease \
             --title "Tafo $RELEASE_TAG" \
-            --notes 'Apple Silicon development preview. Download the ZIP, move Tafo.app to Applications, and open it. Includes the matching BAML runtime and write-only telemetry for the configured development environment. Ad-hoc signed, not notarized. See README for model configuration and privacy details.'
+            --notes 'Apple Silicon development preview. Download the ZIP, move Tafo.app to Applications, and open it. Includes the matching BAML runtime and write-only telemetry for the production environment. Ad-hoc signed, not notarized. See README for model configuration and privacy details.'

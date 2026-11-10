@@ -17,8 +17,8 @@ unzip it, and move **Tafo.app** to Applications. Open it and enable its Accessib
 permission. No Rust or BAML installation is required. These previews are ad-hoc
 signed, not Apple-notarized; macOS may require approval in Privacy & Security.
 
-Release previews include a write-only telemetry key for the configured development
-Cloud environment. They upload app-switching traces and activity aggregates there;
+Tagged releases include a write-only telemetry key for the production Cloud
+environment. Manual CI previews use the separate shared dev environment. They upload app-switching traces and activity aggregates there;
 pausing tracking stops capture and background predictions. Source builds leave
 Cloud off by default. No model API key is distributed.
 

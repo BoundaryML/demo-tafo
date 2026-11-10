@@ -8,10 +8,12 @@ publish a GitHub prerelease. Model credentials are never included. A manual run
 can uncheck `telemetry` to test offline packaging without Cloud credentials.
 Tagged releases always require the scoped telemetry configuration.
 
-Configure these repository settings before the first run:
+Local source builds use your personal login when Cloud is enabled. Manual CI
+previews use the GitHub `dev` environment; `v*` tags use `production`. Configure
+these settings separately in each GitHub environment before its first run:
 
 - Secret `TAFO_TELEMETRY_KEY`: a Boundary API key with **Write (upload)** access
-  to exactly the intended development environment, no query access.
+  to exactly that environment, no query access.
 - Variable `TAFO_TELEMETRY_PROJECT`: `org/project`.
 - Variable `TAFO_TELEMETRY_ENVIRONMENT`: the exact environment name verified by BAML.
 
@@ -22,8 +24,8 @@ write-only key is intentionally recoverable from a shipped app; it is not a
 secret from download recipients. Revoke it in Cloud and rebuild to rotate it.
 
 Only the package step receives the embedding secret, and pull-request CI does not
-receive it. Builds currently target development, not production. Changing the
-configured destination is an explicit release decision. App traces can include
+receive it. Manual builds target the shared Cloud dev environment; tagged releases target
+Cloud Production. Separate keys prevent previews from uploading to production. App traces can include
 app identities and semantic request text; HTTP bodies are disabled. Tracking can
 be paused from the native menu.
 
