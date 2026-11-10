@@ -23,7 +23,7 @@ environment. Manual CI previews use the separate shared dev environment. They up
 pausing tracking stops capture and background predictions. Source builds leave
 Cloud off by default. No model API key is distributed.
 
-**Model settings…** in setup opens the optional private credential file. Save it
+**Model settings…** in the menu opens the optional private credential file. Save it
 and restart Tafo after adding a key. For semantic predictions, put `JEV_API_KEY=...` in
 `~/Library/Application Support/Smart Switch/.env` and set its permissions to `600`.
 Exact app-name matching and recent-app switching work without it.
@@ -45,7 +45,7 @@ cp .env.example .env
 ./switch-app --listen
 ```
 
-The native app currently appears as **Smart Switch** in macOS. Enable its
+The app appears as **Tafo** in macOS. Enable its
 Accessibility permission when prompted so it can receive the global shortcut.
 The build bundles the matching BAML runtime library; the running app does not
 need a compiler, shell profile, or BAML subprocess.

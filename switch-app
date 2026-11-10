@@ -2,8 +2,8 @@
 # This noninteractive script never sources a shell profile.
 set -euo pipefail
 ROOT=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
-APP="$ROOT/dist/Smart Switch.app"
-BIN="$APP/Contents/MacOS/SmartSwitch"
+APP="$ROOT/dist/Tafo.app"
+BIN="$APP/Contents/MacOS/Tafo"
 if [[ ! -x "$BIN" ]]; then
     printf 'Build first: %s/scripts/build.sh\n' "$ROOT" >&2
     exit 1

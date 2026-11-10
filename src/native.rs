@@ -3,6 +3,7 @@ mod cycler;
 mod tracking;
 use tracking::tracking_menu;
 mod journal;
+mod mascot;
 mod setup;
 use objc2::rc::Retained;
 use objc2::runtime::{AnyObject, Sel};
@@ -10,7 +11,6 @@ use objc2::{class, define_class, msg_send, sel, DefinedClass, MainThreadOnly};
 use objc2_foundation::{
     MainThreadMarker, NSObject, NSObjectProtocol, NSPoint, NSRect, NSSize, NSString,
 };
-use smart_switch::*;
 use std::{
     cell::RefCell,
     collections::HashSet,
@@ -28,6 +28,7 @@ use std::{
     thread,
     time::{Duration, Instant},
 };
+use tafo::*;
 
 #[link(name = "AppKit", kind = "framework")]
 extern "C" {}
@@ -60,7 +61,7 @@ extern "C" {
     fn CFRunLoopAddSource(run_loop: *mut c_void, source: *mut c_void, mode: *const c_void);
     static kCFRunLoopCommonModes: *const c_void;
 }
-const APP_ID: &str = "local.baml.smart-switch";
+const APP_ID: &str = "com.boundaryml.tafo";
 const NIL: *mut AnyObject = std::ptr::null_mut();
 fn report_local_error(result: Result<()>) {
     if let Err(error) = result {
@@ -349,6 +350,7 @@ struct Toast {
     started: Instant,
     origin: NSPoint,
     reduce_motion: bool,
+    mascot: mascot::Mascot,
 }
 struct State {
     window: Option<Retained<AnyObject>>,
@@ -422,7 +424,7 @@ define_class!(
         #[unsafe(method(recent:))] fn recent(&self,sender:*mut AnyObject){unsafe{let index:isize=msg_send![sender,tag];let id=self.ivars().borrow().pending.as_ref().and_then(|s|s.apps.iter().filter(|a|a.bundle_id!=s.current_app_id).nth(index as usize)).map(|a|a.bundle_id.clone());if let Some(id)=id{match activate(&id){Ok(())=>{self.hide(false);self.show_toast(&id,"Selected from your recent apps.");},Err(error)=>self.show_error(&error)}}}}
         #[unsafe(method(quit:))] fn quit(&self,_:*mut AnyObject){let _=self.ivars().borrow().activity.save(&storage_dir().join("activity.json"));unsafe{let app:*mut AnyObject=msg_send![class!(NSApplication),sharedApplication];let _:()=msg_send![app,terminate:NIL];}}
         #[unsafe(method(setup:))] fn setup(&self,_:*mut AnyObject){unsafe{self.show_setup();}}
-        #[unsafe(method(finishSetup:))] fn finish_setup_action(&self,_:*mut AnyObject){unsafe{self.finish_setup();}}
+        #[unsafe(method(setupContinue:))] fn setup_continue(&self,_:*mut AnyObject){unsafe{self.continue_setup();}}
         #[unsafe(method(modelSetup:))] fn model_setup(&self,_:*mut AnyObject){unsafe{self.open_model_config();}}
         #[unsafe(method(access:))] fn access(&self,_:*mut AnyObject){unsafe{self.open_access_settings();}}
         #[unsafe(method(tick:))] fn tick(&self,_:*mut AnyObject){unsafe{self.on_tick();}}
@@ -445,7 +447,7 @@ impl Controller {
             msg_send![raw,initWithContentRect:rect(0.,0.,480.,120.), styleMask:(1usize|2usize|(1usize<<15)), backing:2usize, defer:false],
         );
         let _: () = msg_send![&*window,setReleasedWhenClosed:false];
-        let _: () = msg_send![&*window,setTitle:&*ns("Smart Switch")];
+        let _: () = msg_send![&*window,setTitle:&*ns("Tafo")];
         let _: () = msg_send![&*window,setTitleVisibility:1isize];
         let _: () = msg_send![&*window,setTitlebarAppearsTransparent:true];
         for kind in 0usize..3 {
@@ -703,7 +705,7 @@ impl Controller {
         let _: () = msg_send![&*window,setContentView:&*root];
         if let Some((_, _, native)) = app {
             let image: *mut AnyObject = msg_send![native, icon];
-            let view = new_view("NSImageView", rect(18., 39., 34., 34.));
+            let view = new_view("NSImageView", rect(346., 70., 18., 18.));
             let _: () = msg_send![&*view,setImage:image];
             let _: () = msg_send![&*view,setImageScaling:0usize];
             let _: () = msg_send![&*root,addSubview:&*view];
@@ -711,7 +713,7 @@ impl Controller {
         label(
             &*root as *const _ as *mut _,
             &format!("Switched to {name}"),
-            rect(64., 61., 296., 23.),
+            rect(106., 61., 232., 23.),
             14.,
             0.4,
             color(0.12, 0.27, 0.21),
@@ -719,7 +721,7 @@ impl Controller {
         let reason = label(
             &*root as *const _ as *mut _,
             explanation,
-            rect(64., 24., 294., 34.),
+            rect(106., 24., 252., 34.),
             11.5,
             0.,
             color(0.38, 0.45, 0.39),
@@ -727,6 +729,11 @@ impl Controller {
         let _: () = msg_send![&*reason,setMaximumNumberOfLines:2isize];
         let cell: *mut AnyObject = msg_send![&*reason, cell];
         let _: () = msg_send![cell,setWraps:true];
+        let mascot = mascot::Mascot::new(
+            &*root as *const _ as *mut _,
+            rect(8., 18., 94., 80.),
+            mascot::Pose::Switch,
+        );
         let track = new_view("NSView", rect(18., 12., 344., 3.));
         rounded(&*track as *const _ as *mut _, 1.5, color(0.84, 0.89, 0.82));
         let _: () = msg_send![&*root,addSubview:&*track];
@@ -753,6 +760,7 @@ impl Controller {
             started: Instant::now(),
             origin,
             reduce_motion,
+            mascot,
         });
         FEEDBACK_VISIBLE.store(true, Ordering::Relaxed);
     }
@@ -773,6 +781,7 @@ impl Controller {
         }
     }
     unsafe fn on_tick(&self) {
+        self.animate_mascots();
         if self.poll_setup() {
             return;
         }
@@ -1249,7 +1258,7 @@ pub unsafe fn run(prompt: bool) -> Result<()> {
         "⇄ ⏸"
     };
     let _: () = msg_send![button,setTitle:&*ns(initial_title)];
-    let _: () = msg_send![button,setToolTip:&*ns("Smart Switch")];
+    let _: () = msg_send![button,setToolTip:&*ns("Tafo")];
     let menu_raw: *mut AnyObject = msg_send![class!(NSMenu), alloc];
     let menu = owned(msg_send![menu_raw, init]);
     for (title, action) in [
@@ -1257,8 +1266,9 @@ pub unsafe fn run(prompt: bool) -> Result<()> {
         ("Switch using workflow", sel!(tap:)),
         ("Activity & switch reasons…", sel!(activity:)),
         ("Setup…", sel!(setup:)),
+        ("Model settings…", sel!(modelSetup:)),
         ("Keyboard access settings…", sel!(access:)),
-        ("Quit Smart Switch", sel!(quit:)),
+        ("Quit Tafo", sel!(quit:)),
     ] {
         let raw: *mut AnyObject = msg_send![class!(NSMenuItem), alloc];
         let entry =
@@ -1278,7 +1288,12 @@ pub unsafe fn run(prompt: bool) -> Result<()> {
     ACCESS.store(install_tap(), Ordering::Relaxed);
     let timer: *mut AnyObject = msg_send![class!(NSTimer),scheduledTimerWithTimeInterval:0.016f64, target:&*controller, selector:sel!(tick:), userInfo:NIL, repeats:true];
     controller.ivars().borrow_mut().timer = Retained::retain(timer);
-    if !storage_dir().join("setup-v1.json").exists() || !ACCESS.load(Ordering::Relaxed) {
+    #[cfg(not(feature = "native-smoke"))]
+    let setup_required =
+        !storage_dir().join("setup-v1.json").exists() || !ACCESS.load(Ordering::Relaxed);
+    #[cfg(feature = "native-smoke")]
+    let setup_required = false; // Interactive onboarding is covered separately from the isolated focus test.
+    if setup_required {
         controller.show_setup();
     } else if prompt {
         controller.show_prompt();

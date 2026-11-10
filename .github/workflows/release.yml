@@ -59,7 +59,7 @@ jobs:
         env:
           SMART_SWITCH_STATE_DIR: ${{ runner.temp }}/tafo-smoke
         run: |
-          dist/Tafo.app/Contents/MacOS/SmartSwitch --dry-run --text Finder
+          dist/Tafo.app/Contents/MacOS/Tafo --dry-run --text Finder
           unzip -t dist/Tafo-macos-arm64.zip
       - uses: actions/upload-artifact@v4
         with:

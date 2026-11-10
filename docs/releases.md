@@ -30,8 +30,7 @@ app identities and semantic request text; HTTP bodies are disabled. Tracking can
 be paused from the native menu.
 
 The ZIP installs by dragging Tafo.app into Applications. Semantic requests use the
-user's own JEV key from the private Application Support `.env`. The app preserves
-its existing Smart Switch bundle identifier and state directory. It requires
+user's own JEV key from the private Application Support `.env`. The app uses `com.boundaryml.tafo` and reuses the existing local history directory. It requires
 Accessibility permission for the shortcut. The release is ad-hoc signed and not
 notarized; consistent Developer ID signing and notarization need Apple developer
 credentials and are not configured here.

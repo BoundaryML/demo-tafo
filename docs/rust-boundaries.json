@@ -352,8 +352,8 @@
     {
       "functions": [
         "setup",
-        "finish_setup_action",
-        "model_setup"
+        "model_setup",
+        "setup_continue"
       ],
       "reason": "Routes native AppKit setup menu and button selectors to permission checks, secure configuration-file access, and the onboarding window."
     },
@@ -399,6 +399,12 @@
         "show_cycle"
       ],
       "reason": "Renders the BAML-provided visible indices, native app icons, selected state, and page positions in a nonactivating AppKit panel."
+    },
+    {
+      "functions": [
+        "animate_mascot"
+      ],
+      "reason": "Forwards native frame rendering to the mascot attached to the current cycle panel; the generated BAML CyclePlan already supplies the correction state."
     }
   ],
   "src/native/journal.rs": [
@@ -452,7 +458,7 @@
         "show_setup",
         "render_setup"
       ],
-      "reason": "Builds and updates the native AppKit onboarding window using generated BAML setup status; renders permission guidance, shortcut verification, optional model configuration and the build telemetry destination."
+      "reason": "Builds and updates the native AppKit onboarding window from generated BAML setup status, with the approved animated ferret, one main action and permission guidance."
     },
     {
       "functions": [
@@ -483,6 +489,54 @@
         "multiline"
       ],
       "reason": "Configures native NSTextFieldCell word wrapping so permission guidance and Cloud destination disclosure remain fully visible within the fixed onboarding window."
+    },
+    {
+      "functions": [
+        "continue_setup"
+      ],
+      "reason": "Dispatches the main AppKit onboarding button using the generated BAML setup stage; opens native permission settings or completes the host acknowledgement."
+    }
+  ],
+  "src/native/mascot.rs": [
+    {
+      "functions": [
+        "CGImageCreateWithImageInRect",
+        "CGImageGetWidth",
+        "CGImageGetHeight",
+        "CGImageRelease"
+      ],
+      "reason": "Uses native CoreGraphics image ownership and source rectangles to decode the eight atlas cells for AppKit rendering, without modifying generated sprite assets."
+    },
+    {
+      "functions": [
+        "frames"
+      ],
+      "reason": "Decodes and caches the eight native frame images from each bundled 4\u00d72 sprite atlas on the UI thread; source fallback supports local development."
+    },
+    {
+      "functions": [
+        "frame_index"
+      ],
+      "reason": "Maps monotonic native rendering time to actual drawn sprite frames, with idle holds and one-shot playback. Reduce Motion selects a static representative frame."
+    },
+    {
+      "functions": [
+        "new",
+        "set_pose"
+      ],
+      "reason": "Creates native NSImageView sprite players and selects the appropriate atlas in response to existing typed setup and cycle UI state; no prediction or learning policy."
+    },
+    {
+      "functions": [
+        "animate"
+      ],
+      "reason": "Advances the NSImageView only when the drawn sprite frame changes, obeying the live macOS Reduce Motion setting. Does not move or scale a still image."
+    },
+    {
+      "functions": [
+        "animate_mascots"
+      ],
+      "reason": "Ticks visible native sprite players alongside the existing AppKit timer with no model, network or filesystem work on animation frames."
     }
   ]
 }

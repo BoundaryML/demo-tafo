@@ -1,5 +1,5 @@
 [package]
-name = "app-switcher"
+name = "tafo"
 
 [toolchain]
 version = "0.25.3-nightly.20261108.a"

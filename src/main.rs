@@ -1,5 +1,5 @@
 mod native;
-use smart_switch::*;
+use tafo::*;
 fn main() {
     objc2::rc::autoreleasepool(|_| {
         if let Err(error) = run() {
@@ -20,7 +20,7 @@ fn run() -> Result<()> {
         return Ok(());
     }
     if args.iter().any(|s| s == "--help") {
-        println!("Smart Switch — Rust + Nightly BAML + JEV\n  --snapshot\n  --activity\n  --history\n  --predict --dry-run\n  --dry-run [--text TEXT]\n  --tap\n  --prompt\n  --listen\n  --status\n  --quit");
+        println!("Tafo — Rust + Nightly BAML + JEV\n  --snapshot\n  --activity\n  --history\n  --predict --dry-run\n  --dry-run [--text TEXT]\n  --tap\n  --prompt\n  --listen\n  --status\n  --quit");
         return Ok(());
     }
     if args.iter().any(|s| s == "--activity") {

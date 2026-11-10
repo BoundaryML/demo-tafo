@@ -1,5 +1,5 @@
-use smart_switch::*;
 use std::time::Duration;
+use tafo::*;
 static CYCLE_TEST: std::sync::Mutex<()> = std::sync::Mutex::new(());
 fn ms(n: u64) -> Duration {
     Duration::from_millis(n)

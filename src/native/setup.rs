@@ -1,4 +1,5 @@
-use super::journal::{button, fill, text, tint};
+use super::journal::tint;
+use super::mascot::{Mascot, Pose};
 use super::*;
 
 pub(super) struct SetupWindow {
@@ -8,6 +9,7 @@ pub(super) struct SetupWindow {
     done: Retained<AnyObject>,
     tested: bool,
     checked: Instant,
+    pub(super) mascot: Mascot,
 }
 
 unsafe fn multiline(view: &AnyObject) {
@@ -36,111 +38,44 @@ impl Controller {
         self.hide(true);
         let raw: *mut AnyObject = msg_send![class!(NSWindow), alloc];
         let window = owned(
-            msg_send![raw,initWithContentRect:rect(0.,0.,540.,450.),styleMask:1usize,backing:2usize,defer:false],
+            msg_send![raw,initWithContentRect:rect(0.,0.,540.,520.),styleMask:1usize,backing:2usize,defer:false],
         );
         let _: () = msg_send![&*window,setReleasedWhenClosed:false];
         let _: () = msg_send![&*window,setTitle:&*ns("Welcome to Tafo")];
         let _: () = msg_send![&*window,setTitlebarAppearsTransparent:true];
         let _: () = msg_send![&*window,setTitleVisibility:1isize];
-        let root = new_view("NSView", rect(0., 0., 540., 450.));
+        let root = new_view("NSView", rect(0., 0., 540., 520.));
         let parent = &*root as *const _ as *mut AnyObject;
-        fill(
-            parent,
-            rect(40., 342., 52., 52.),
-            color(0.85, 0.93, 0.88),
-            15.,
-        );
-        label(
-            parent,
-            "⇄",
-            rect(47., 348., 40., 40.),
-            32.,
-            0.4,
-            color(0.15, 0.36, 0.26),
-        );
-        text(parent, "TAFO", rect(108., 360., 160., 22.), 13., 0.5, true);
+        rounded(parent, 0., color(0.985, 0.978, 0.956));
+        let appearance: *mut AnyObject =
+            msg_send![class!(NSAppearance),appearanceNamed:&*ns("NSAppearanceNameAqua")];
+        let _: () = msg_send![parent,setAppearance:appearance];
+        let mascot = Mascot::new(parent, rect(140., 250., 260., 240.), Pose::Idle);
         let title = label(
             parent,
             "",
-            rect(40., 284., 468., 42.),
+            rect(30., 200., 480., 38.),
             26.,
             0.4,
             tint(sel!(labelColor)),
         );
+        let _: () = msg_send![&*title,setAlignment:1isize];
         let detail = label(
             parent,
             "",
-            rect(40., 231., 460., 46.),
+            rect(50., 146., 440., 44.),
             14.,
             0.,
             tint(sel!(secondaryLabelColor)),
         );
+        let _: () = msg_send![&*detail,setAlignment:1isize];
         multiline(&detail);
-        button(
-            parent,
-            "Open Accessibility Settings",
-            rect(36., 177., 260., 34.),
-            sel!(access:),
-            self,
-            true,
-        );
-        button(
-            parent,
-            "Model settings…",
-            rect(320., 177., 178., 34.),
-            sel!(modelSetup:),
-            self,
-            false,
-        );
-        text(
-            parent,
-            "Hold your key to type or dictate a destination.",
-            rect(40., 132., 460., 22.),
-            12.,
-            0.,
-            true,
-        );
-        let model_ready = std::env::var("JEV_API_KEY")
-            .or_else(|_| std::env::var("TYPESAFE_API_KEY"))
-            .is_ok_and(|v| !v.is_empty());
-        let cloud = if cloud_tracing_enabled() {
-            option_env!("TAFO_CLOUD_LABEL")
-                .filter(|label| !label.is_empty())
-                .unwrap_or("your Cloud project")
-        } else {
-            ""
-        };
-        let view = sdk::setup_view_sync(
-            ACCESS.load(Ordering::Relaxed),
-            false,
-            model_ready,
-            cloud.into(),
-        );
-        if let Ok(view) = view {
-            text(
-                parent,
-                &view.model,
-                rect(40., 105., 460., 20.),
-                12.,
-                0.,
-                true,
-            );
-            let privacy = label(
-                parent,
-                &view.privacy,
-                rect(40., 52., 306., 42.),
-                11.,
-                0.,
-                tint(sel!(secondaryLabelColor)),
-            );
-            multiline(&privacy);
-        }
-        let done = new_view("NSButton", rect(365., 56., 135., 34.));
-        let _: () = msg_send![&*done,setTitle:&*ns("Start switching")];
+        let done = new_view("NSButton", rect(185., 90., 170., 38.));
         let _: () = msg_send![&*done,setBezelStyle:1usize];
         let _: () = msg_send![&*done,setTarget:self];
-        let _: () = msg_send![&*done,setAction:sel!(finishSetup:)];
+        let _: () = msg_send![&*done,setAction:sel!(setupContinue:)];
         let _: () = msg_send![&*done,setKeyEquivalent:&*ns("\r")];
+        let _: () = msg_send![&*done,setToolTip:&*ns("If Tafo is already enabled, turn it off and on again in Accessibility.")];
         let _: () = msg_send![parent,addSubview:&*done];
         let _: () = msg_send![&*window,setContentView:&*root];
         let _: () = msg_send![&*window, center];
@@ -154,26 +89,29 @@ impl Controller {
             done,
             tested: false,
             checked: Instant::now(),
+            mascot,
         });
         self.render_setup();
     }
 
     unsafe fn render_setup(&self) {
-        let state = self.ivars().borrow();
-        let Some(setup) = state.setup.as_ref() else {
+        let mut state = self.ivars().borrow_mut();
+        let Some(setup) = state.setup.as_mut() else {
             return;
         };
-        match sdk::setup_view_sync(
-            ACCESS.load(Ordering::Relaxed),
-            setup.tested,
-            false,
-            String::new(),
-        ) {
+        match sdk::setup_view_sync(ACCESS.load(Ordering::Relaxed), setup.tested) {
             Ok(view) => {
                 let _: () = msg_send![&*setup.title,setStringValue:&*ns(&view.title)];
                 let _: () = msg_send![&*setup.detail,setStringValue:&*ns(&view.detail)];
-                let _: () =
-                    msg_send![&*setup.done,setEnabled:matches!(view.stage,sdk::SetupStage::Ready)];
+                let _: () = msg_send![&*setup.done,setEnabled:!matches!(view.stage,sdk::SetupStage::Shortcut)];
+                let _: () = msg_send![&*setup.done,setTitle:&*ns(&view.action)];
+                setup
+                    .mascot
+                    .set_pose(if matches!(view.stage, sdk::SetupStage::Ready) {
+                        Pose::Switch
+                    } else {
+                        Pose::Idle
+                    });
             }
             Err(_) => {
                 let _: () = msg_send![&*setup.title,setStringValue:&*ns("Setup is unavailable")];
@@ -224,6 +162,22 @@ impl Controller {
             self.render_setup();
         }
         true
+    }
+
+    pub(super) unsafe fn continue_setup(&self) {
+        let tested = self
+            .ivars()
+            .borrow()
+            .setup
+            .as_ref()
+            .is_some_and(|s| s.tested);
+        if let Ok(view) = sdk::setup_view_sync(ACCESS.load(Ordering::Relaxed), tested) {
+            match view.stage {
+                sdk::SetupStage::Permission => self.open_access_settings(),
+                sdk::SetupStage::Ready => self.finish_setup(),
+                sdk::SetupStage::Shortcut => {}
+            }
+        }
     }
 
     pub(super) unsafe fn finish_setup(&self) {

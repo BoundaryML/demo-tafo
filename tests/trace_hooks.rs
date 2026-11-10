@@ -1,6 +1,6 @@
 //! Exercise declared hooks with telemetry enabled in a separate process. The
 //! collector points at localhost, with synthetic inputs and no user credentials.
-use smart_switch::sdk;
+use tafo::sdk;
 
 #[test]
 fn declared_trace_hooks_apply_scoped_context() {

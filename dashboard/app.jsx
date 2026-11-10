@@ -464,7 +464,7 @@ function ValueSummary({ view, model, modelError }) {
       </div>
       <div className="value-proof">
         <div>
-          <span>Smart Switch choice time</span>
+          <span>Tafo choice time</span>
           <strong>
             {value?.measured_switches ? preciseTime(value.switch_ms) : "—"}
           </strong>
@@ -499,7 +499,7 @@ function ValueSummary({ view, model, modelError }) {
       <div className="value-foot">
         <span>
           Time budget = observed moves × your assumed pace. Savings compare
-          timed Smart Switch choices only.
+          timed Tafo choices only.
         </span>
         <a
           href="https://help.typesafe.ai/articles/5187202169-how-much-does-jev-cost"
@@ -739,7 +739,7 @@ function App() {
       ) : !view ? (
         <div className="empty">
           <h2>Waiting for your Mac</h2>
-          <p>Open Smart Switch to publish its first BAML activity summary.</p>
+          <p>Open Tafo to publish its first BAML activity summary.</p>
         </div>
       ) : (
         <>
@@ -754,7 +754,7 @@ function App() {
             <Sessions view={view} />
           </div>
           <footer>
-            <span title="BAML calculates these patterns from Smart Switch's retained local activity. The app publishes a summary approximately once a minute while recording is enabled.">
+            <span title="BAML calculates these patterns from Tafo's retained local activity. The app publishes a summary approximately once a minute while recording is enabled.">
               As of{" "}
               {new Date(snapshot.at * 1000).toLocaleDateString([], {
                 month: "short",

@@ -9,8 +9,14 @@ pub(super) struct ActiveCycle {
     applied: Option<String>,
     started: Instant,
     first_activation_ms: Option<i64>,
+    mascot: Option<mascot::Mascot>,
 }
 impl ActiveCycle {
+    pub(super) unsafe fn animate_mascot(&self) {
+        if let Some(m) = self.mascot.as_ref() {
+            m.animate();
+        }
+    }
     pub(super) fn previewing(&self) -> bool {
         self.applied.is_none() || self.plan.as_ref().is_none_or(|p| !p.fast)
     }
@@ -41,6 +47,7 @@ impl Controller {
             applied: None,
             started: state.tap_started,
             first_activation_ms: None,
+            mascot: None,
         });
         let event_id = format!(
             "{}-{}",
@@ -232,7 +239,7 @@ impl Controller {
                         c.pending_replies = c.pending_replies.saturating_sub(1);
                         if applied.is_some() {
                             c.first_activation_ms = Some(c.started.elapsed().as_millis() as i64);
-                            c.applied = applied;
+                            c.applied = applied.clone();
                         }
                         c.plan = Some(plan);
                     }
@@ -246,6 +253,9 @@ impl Controller {
                         self.show_cycle();
                     } else {
                         CYCLE_VISIBLE.store(false, Ordering::Relaxed);
+                        if let Some(id) = applied {
+                            self.show_toast(&id, "Your next app.");
+                        }
                     }
                 }
                 CycleResponse::Plan(token, _) => {
@@ -354,6 +364,15 @@ impl Controller {
             0.,
             hint,
         );
+        active.mascot = Some(mascot::Mascot::new(
+            &*root as *const _ as *mut _,
+            rect(width - 49., 83., 42., 35.),
+            if c.advances > 0 {
+                mascot::Pose::Correct
+            } else {
+                mascot::Pose::Idle
+            },
+        ));
         let screen: *mut AnyObject = msg_send![class!(NSScreen), mainScreen];
         let frame: NSRect = msg_send![screen, visibleFrame];
         let _: () = msg_send![&*panel,setFrameOrigin:NSPoint::new(frame.origin.x+(frame.size.width-width)/2.,frame.origin.y+64.)];
