@@ -10,6 +10,15 @@ pub(super) struct SetupWindow {
     checked: Instant,
 }
 
+unsafe fn multiline(view: &AnyObject) {
+    let _: () = msg_send![view,setMaximumNumberOfLines:2isize];
+    let cell: *mut AnyObject = msg_send![view, cell];
+    let _: () = msg_send![cell,setUsesSingleLineMode:false];
+    let _: () = msg_send![cell,setWraps:true];
+    let _: () = msg_send![cell,setScrollable:false];
+    let _: () = msg_send![cell,setLineBreakMode:0isize];
+}
+
 impl Controller {
     pub(super) unsafe fn open_access_settings(&self) {
         let enabled: *mut AnyObject = msg_send![class!(NSNumber),numberWithBool:true];
@@ -66,7 +75,7 @@ impl Controller {
             0.,
             tint(sel!(secondaryLabelColor)),
         );
-        let _: () = msg_send![&*detail,setMaximumNumberOfLines:2isize];
+        multiline(&detail);
         button(
             parent,
             "Open Accessibility Settings",
@@ -124,7 +133,7 @@ impl Controller {
                 0.,
                 tint(sel!(secondaryLabelColor)),
             );
-            let _: () = msg_send![&*privacy,setMaximumNumberOfLines:2isize];
+            multiline(&privacy);
         }
         let done = new_view("NSButton", rect(365., 56., 135., 34.));
         let _: () = msg_send![&*done,setTitle:&*ns("Start switching")];

@@ -5,7 +5,7 @@ Run `python3 scripts/code_stats.py > docs/code-stats.md` to refresh.
 | Language / role | Files | Nonblank lines | KiB |
 | --- | ---: | ---: | ---: |
 | BAML (includes inline tests) | 21 | 3,029 | 101.5 |
-| Rust application | 8 | 3,149 | 115.1 |
+| Rust application | 8 | 3,157 | 115.4 |
 | Rust tests | 2 | 644 | 21.7 |
 | JavaScript / JSX dashboard | 3 | 903 | 30.0 |
 | JavaScript tests | 1 | 76 | 3.0 |

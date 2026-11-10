@@ -477,6 +477,12 @@
         "open_access_settings"
       ],
       "reason": "Registers the app with the native macOS Accessibility prompt and opens the specific System Settings pane when requested from setup."
+    },
+    {
+      "functions": [
+        "multiline"
+      ],
+      "reason": "Configures native NSTextFieldCell word wrapping so permission guidance and Cloud destination disclosure remain fully visible within the fixed onboarding window."
     }
   ]
 }
