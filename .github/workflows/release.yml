@@ -2,6 +2,11 @@ name: Package macOS app
 
 on:
   workflow_dispatch:
+    inputs:
+      telemetry:
+        description: Embed development telemetry (requires configured key)
+        type: boolean
+        default: true
   push:
     tags: ["v*"]
 
@@ -14,18 +19,19 @@ concurrency:
 
 jobs:
   package:
-    name: Apple Silicon app with dev telemetry
+    name: Apple Silicon app
     runs-on: macos-15
     timeout-minutes: 30
     env:
       BAML_TELEMETRY: "off"
       BOUNDARY_API_KEY: local
-      SMART_SWITCH_CLOUD: "1"
-      TAFO_EMBED_TELEMETRY: "1"
+      SMART_SWITCH_CLOUD: ${{ (github.event_name == 'push' || inputs.telemetry == true) && '1' || '0' }}
+      TAFO_EMBED_TELEMETRY: ${{ (github.event_name == 'push' || inputs.telemetry == true) && '1' || '0' }}
     steps:
       - uses: actions/checkout@v7
       - uses: BoundaryML/setup-baml@v1
       - name: Configure telemetry destination
+        if: github.event_name == 'push' || inputs.telemetry == true
         env:
           TELEMETRY_PROJECT: ${{ vars.TAFO_TELEMETRY_PROJECT }}
           TELEMETRY_ENVIRONMENT: ${{ vars.TAFO_TELEMETRY_ENVIRONMENT }}

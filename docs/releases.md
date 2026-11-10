@@ -4,7 +4,9 @@
 `.app`, embeds the BAML telemetry credential in its generated native SDK, bundles
 the matching runtime dylib, verifies the ad-hoc signature, smoke tests the bundled
 runtime with Cloud disabled, and uploads a ZIP plus SHA-256 checksum. Tags also
-publish a GitHub prerelease. Model credentials are never included.
+publish a GitHub prerelease. Model credentials are never included. A manual run
+can uncheck `telemetry` to test offline packaging without Cloud credentials.
+Tagged releases always require the scoped telemetry configuration.
 
 Configure these repository settings before the first run:
 
