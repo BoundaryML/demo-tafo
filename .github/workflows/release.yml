@@ -32,6 +32,8 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: BoundaryML/setup-baml@v1
+      - name: Test release source
+        run: ./scripts/test.sh
       - name: Configure telemetry destination
         if: github.event_name == 'push' || inputs.telemetry == true
         env:

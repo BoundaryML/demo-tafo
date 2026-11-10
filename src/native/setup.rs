@@ -95,7 +95,9 @@ impl Controller {
             .or_else(|_| std::env::var("TYPESAFE_API_KEY"))
             .is_ok_and(|v| !v.is_empty());
         let cloud = if cloud_tracing_enabled() {
-            option_env!("TAFO_CLOUD_LABEL").unwrap_or("your Cloud project")
+            option_env!("TAFO_CLOUD_LABEL")
+                .filter(|label| !label.is_empty())
+                .unwrap_or("your Cloud project")
         } else {
             ""
         };

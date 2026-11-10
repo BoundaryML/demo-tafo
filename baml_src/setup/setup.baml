@@ -36,7 +36,9 @@ function setup_view(
             SetupStage.Ready => "You're ready to move.",
         },
         detail: match (stage) {
-            SetupStage.Permission => "Enable Smart Switch in Accessibility. If already on, turn it off and on again.",
+            SetupStage.Permission => {
+                "Enable Smart Switch in Accessibility. If already on, turn it off and on again."
+            },
             SetupStage.Shortcut => "Press your switcher key, F19, or Control–Option–C.",
             SetupStage.Ready => "Tap to switch. Tap again for more. Hold to ask.",
         },
