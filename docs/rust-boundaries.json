@@ -404,7 +404,7 @@
       "functions": [
         "animate_mascot"
       ],
-      "reason": "Forwards native frame rendering to the mascot attached to the current cycle panel; the generated BAML CyclePlan already supplies the correction state."
+      "reason": "Advances the cycle panel\u2019s native sprite and subtle settle-time indicator using monotonic input timing; BAML still owns ordering, correction and commitment policy."
     }
   ],
   "src/native/journal.rs": [
@@ -537,6 +537,32 @@
         "animate_mascots"
       ],
       "reason": "Ticks visible native sprite players alongside the existing AppKit timer with no model, network or filesystem work on animation frames."
+    }
+  ],
+  "src/native/theme.rs": [
+    {
+      "functions": [
+        "tokens"
+      ],
+      "reason": "Loads the compile-time shared design JSON once for native geometry and colors; the dashboard build consumes the same file."
+    },
+    {
+      "functions": [
+        "is_dark"
+      ],
+      "reason": "Reads the native AppKit effective appearance so all Tafo surfaces choose the matching semantic light or dark palette."
+    },
+    {
+      "functions": [
+        "color"
+      ],
+      "reason": "Resolves semantic UI color roles from the shared design tokens into native NSColor objects, without hardcoded per-screen palettes."
+    },
+    {
+      "functions": [
+        "surface"
+      ],
+      "reason": "Applies the shared native paper surface, corner radius and hairline border to AppKit windows and panels."
     }
   ]
 }

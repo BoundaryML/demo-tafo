@@ -15,6 +15,7 @@ import time
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_APP = ROOT / 'dist/Tafo.app'
 APP = Path(os.environ.get('SMART_SWITCH_SMOKE_APP', str(DEFAULT_APP)))
+RESTORE_APP = Path(os.environ.get('TAFO_RESTORE_APP', str(DEFAULT_APP)))
 BIN = APP / 'Contents/MacOS/Tafo'
 REAL_STATE = Path.home() / 'Library/Application Support/Smart Switch'
 
@@ -112,7 +113,7 @@ def main():
             results['personal_history_untouched'] = state_hash() == protected
             assert results['personal_history_untouched']
     finally:
-        restore = ['/usr/bin/open', '-n', str(DEFAULT_APP)]
+        restore = ['/usr/bin/open', '-n', str(RESTORE_APP)]
         for key in ('SMART_SWITCH_ENV_FILE', 'BOUNDARY_PROJECT'):
             if key in os.environ:
                 restore.extend(['--env', f'{key}={os.environ[key]}'])

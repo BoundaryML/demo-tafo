@@ -1,9 +1,18 @@
 use super::*;
 
 pub(super) unsafe fn tint(selector: Sel) -> *mut AnyObject {
-    // All colors follow the user's macOS appearance.
-    let color: *mut AnyObject = msg_send![class!(NSColor), performSelector:selector];
-    color
+    let role = if selector == sel!(labelColor) {
+        Role::Ink
+    } else if selector == sel!(secondaryLabelColor) {
+        Role::Sub
+    } else if selector == sel!(controlAccentColor) {
+        Role::Accent
+    } else if selector == sel!(quaternaryLabelColor) {
+        Role::Selection
+    } else {
+        Role::Rule
+    };
+    themed(role)
 }
 pub(super) unsafe fn text(
     parent: *mut AnyObject,
@@ -114,9 +123,9 @@ impl Controller {
         let _: () = msg_send![&*window,setReleasedWhenClosed:false];
         let _: () = msg_send![&*window,setTitle:&*ns("Activity")];
         let _: () = msg_send![&*window,setContentSize:NSSize::new(840.,600.)];
-        let root = new_view("NSVisualEffectView", rect(0., 0., 840., 600.));
-        let _: () = msg_send![&*root,setMaterial:12isize];
-        let _: () = msg_send![&*root,setBlendingMode:0isize];
+        let root = new_view("NSView", rect(0., 0., 840., 600.));
+        theme::surface(&*root as *const _ as *mut _, 0.);
+        let _: () = msg_send![&*window,setBackgroundColor:themed(Role::Paper)];
         let _: () = msg_send![&*window,setContentView:&*root];
         let root = &*root as *const _ as *mut AnyObject;
         text(

@@ -5,13 +5,13 @@ Run `python3 scripts/code_stats.py > docs/code-stats.md` to refresh.
 | Language / role | Files | Nonblank lines | KiB |
 | --- | ---: | ---: | ---: |
 | BAML (includes inline tests) | 21 | 3,008 | 100.8 |
-| Rust application | 9 | 3,290 | 121.2 |
+| Rust application | 10 | 3,492 | 127.7 |
 | Rust tests | 2 | 644 | 21.7 |
-| JavaScript / JSX dashboard | 3 | 903 | 30.0 |
+| JavaScript / JSX dashboard | 3 | 920 | 30.7 |
 | JavaScript tests | 1 | 76 | 3.0 |
 | TypeScript | 0 | 0 | 0.0 |
-| CSS | 1 | 882 | 14.5 |
-| Python tooling | 3 | 172 | 9.1 |
+| CSS | 1 | 868 | 14.4 |
+| Python tooling | 3 | 173 | 9.2 |
 | Shell tooling | 4 | 89 | 3.3 |
 
 Counts are physical nonblank lines, including comments. Formatting affects line

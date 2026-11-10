@@ -1,28 +1,14 @@
+/* Palette comes from design/tokens.json in build.mjs. */
 :root {
-  --paper: #f5f5f7;
-  --surface: #fff;
-  --ink: #24252b;
-  --sub: #8b8e98;
-  --rule: #e6e7eb;
-  --flow: #838de5;
-  --flow-light: #b5c2ef;
-  --halo: #fff;
-  --hover: #f4f4f8;
-  --shadow: 0 12px 30px #272b4710;
-  --blue: #727cda;
+  --flow: var(--accent);
+  --flow-light: var(--accent-soft);
+  --halo: var(--surface);
+  --hover: var(--selection);
+  --blue: var(--accent);
+  --shadow: 0 12px 30px rgba(var(--ink-rgb), 0.1);
 }
 html[data-theme="dark"] {
-  --paper: #141519;
-  --surface: #1b1c22;
-  --ink: #edeef3;
-  --sub: #858994;
-  --rule: #2b2d35;
-  --flow: #929dec;
-  --flow-light: #647499;
-  --halo: #23252d;
-  --hover: #252731;
-  --shadow: 0 12px 30px #0003;
-  --blue: #a1acf2;
+  --shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
 }
 * {
   box-sizing: border-box;
@@ -155,7 +141,7 @@ h2 {
   grid-template-columns: minmax(0, 1fr) 260px;
   gap: 0;
   border: 1px solid var(--rule);
-  border-radius: 22px;
+  border-radius: var(--radius-window);
   background: var(--surface);
   overflow: hidden;
   box-shadow: var(--shadow);
@@ -311,7 +297,7 @@ h2 {
   color: var(--sub);
   background: var(--hover);
   border: 1px solid var(--rule);
-  border-radius: 9px;
+  border-radius: var(--radius-control);
 }
 .loop-label {
   font-size: 11px;
@@ -498,7 +484,7 @@ footer button {
 .skeleton {
   height: 440px;
   background: var(--surface);
-  border-radius: 22px;
+  border-radius: var(--radius-window);
   animation: pulse 1.2s ease infinite;
 }
 @keyframes turn {
@@ -681,7 +667,7 @@ footer button {
   margin: 0 0 28px;
   background: var(--surface);
   border: 1px solid var(--rule);
-  border-radius: 18px;
+  border-radius: var(--radius-card);
   padding: 23px 27px 17px;
 }
 .value-head {

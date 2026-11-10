@@ -68,6 +68,16 @@ The native input supports ordinary clipboard paste and dictation insertion.
 ./switch-app --quit
 ```
 
+## The switcher
+
+![Tafo switcher](docs/images/switcher-light.jpg)
+
+App icons sit on a warm paper surface with a cinnamon selection outline. The
+panel keeps a stable width while you cycle through all open apps. The small
+ferret reacts using drawn sprite frames. Colors come from the same
+[light/dark tokens](design/tokens.json) as onboarding, input, feedback, activity,
+and the compiled Cloud dashboard.
+
 ## How it works
 
 BAML owns app matching and ordering, JEV requests and validation, confidence,

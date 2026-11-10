@@ -59,3 +59,15 @@ sound; reviewers should continue moving portable behavior into BAML.
 These folders do not introduce BAML namespaces. The generated API remains shared
 with the native host. The cost-scenario constructor lives on `SwitchValue`, and
 feedback uses a source match instead of a nested sequence of early branches.
+
+## Visual system
+
+`design/tokens.json` is the shared palette for native AppKit surfaces and the
+compiled dashboard. It defines semantic light/dark colors, corner radii, spacing,
+text sizes, and switcher geometry. Native surfaces resolve macOS appearance;
+the dashboard builds the same colors into CSS variables. Input, onboarding,
+activity, cycle preview and switch feedback use the same paper/ink/cinnamon roles.
+
+The native-smoke feature can hold a preview and choose a local app appearance for
+visual QA (`TAFO_SMOKE_HOLD_PREVIEW` and `TAFO_SMOKE_APPEARANCE`). Production builds
+do not read those variables. These fixtures never change production ranking.

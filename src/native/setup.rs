@@ -46,10 +46,8 @@ impl Controller {
         let _: () = msg_send![&*window,setTitleVisibility:1isize];
         let root = new_view("NSView", rect(0., 0., 540., 520.));
         let parent = &*root as *const _ as *mut AnyObject;
-        rounded(parent, 0., color(0.985, 0.978, 0.956));
-        let appearance: *mut AnyObject =
-            msg_send![class!(NSAppearance),appearanceNamed:&*ns("NSAppearanceNameAqua")];
-        let _: () = msg_send![parent,setAppearance:appearance];
+        theme::surface(parent, 0.);
+        let _: () = msg_send![&*window,setBackgroundColor:themed(Role::Paper)];
         let mascot = Mascot::new(parent, rect(140., 250., 260., 240.), Pose::Idle);
         let title = label(
             parent,
@@ -71,7 +69,14 @@ impl Controller {
         let _: () = msg_send![&*detail,setAlignment:1isize];
         multiline(&detail);
         let done = new_view("NSButton", rect(185., 90., 170., 38.));
-        let _: () = msg_send![&*done,setBezelStyle:1usize];
+        let _: () = msg_send![&*done,setBordered:false];
+        let _: () = msg_send![&*done,setFont:font(theme::tokens().text.body,0.3)];
+        let _: () = msg_send![&*done,setContentTintColor:themed(Role::OnAccent)];
+        rounded(
+            &*done as *const _ as *mut _,
+            theme::tokens().radius.control,
+            themed(Role::Accent),
+        );
         let _: () = msg_send![&*done,setTarget:self];
         let _: () = msg_send![&*done,setAction:sel!(setupContinue:)];
         let _: () = msg_send![&*done,setKeyEquivalent:&*ns("\r")];
@@ -105,6 +110,17 @@ impl Controller {
                 let _: () = msg_send![&*setup.detail,setStringValue:&*ns(&view.detail)];
                 let _: () = msg_send![&*setup.done,setEnabled:!matches!(view.stage,sdk::SetupStage::Shortcut)];
                 let _: () = msg_send![&*setup.done,setTitle:&*ns(&view.action)];
+                let waiting = matches!(view.stage, sdk::SetupStage::Shortcut);
+                rounded(
+                    &*setup.done as *const _ as *mut _,
+                    theme::tokens().radius.control,
+                    themed(if waiting {
+                        Role::Selection
+                    } else {
+                        Role::Accent
+                    }),
+                );
+                let _: () = msg_send![&*setup.done,setContentTintColor:themed(if waiting {Role::Sub}else{Role::OnAccent})];
                 setup
                     .mascot
                     .set_pose(if matches!(view.stage, sdk::SetupStage::Ready) {

@@ -4,6 +4,8 @@ mod tracking;
 use tracking::tracking_menu;
 mod journal;
 mod mascot;
+mod theme;
+use theme::{color as themed, Role};
 mod setup;
 use objc2::rc::Retained;
 use objc2::runtime::{AnyObject, Sel};
@@ -115,6 +117,8 @@ unsafe fn label(
     let _: () = msg_send![&*label,setFrame:frame];
     let _: () = msg_send![&*label,setFont:font(size,weight)];
     let _: () = msg_send![&*label,setTextColor:tint];
+    let cell: *mut AnyObject = msg_send![&*label, cell];
+    let _: () = msg_send![cell,setLineBreakMode:4isize];
     let _: () = msg_send![parent,addSubview:&*label];
     label
 }
@@ -355,6 +359,7 @@ struct Toast {
 struct State {
     window: Option<Retained<AnyObject>>,
     setup: Option<setup::SetupWindow>,
+    prompt_dark: bool,
     input: Option<Retained<AnyObject>>,
     detail: Option<Retained<AnyObject>>,
     submit: Option<Retained<AnyObject>>,
@@ -439,9 +444,12 @@ impl Controller {
         unsafe { msg_send![super(this), init] }
     }
     unsafe fn build(&self) {
-        let green = color(0.12, 0.28, 0.23);
-        let ink = color(0.13, 0.17, 0.15);
-        let gray = color(0.48, 0.50, 0.47);
+        if let Some(window) = self.ivars().borrow().window.as_ref() {
+            let _: () = msg_send![&**window,orderOut:NIL];
+        }
+        let accent = themed(Role::Accent);
+        let ink = themed(Role::Ink);
+        let gray = themed(Role::Sub);
         let raw: *mut AnyObject = msg_send![class!(NSWindow), alloc];
         let window = owned(
             msg_send![raw,initWithContentRect:rect(0.,0.,480.,120.), styleMask:(1usize|2usize|(1usize<<15)), backing:2usize, defer:false],
@@ -463,20 +471,18 @@ impl Controller {
         let _: () = msg_send![&*window,setLevel:3isize];
         let _: () = msg_send![&*window,setCollectionBehavior:((1usize<<1)|(1usize<<8))];
         let _: () = msg_send![&*window,setDelegate:self];
-        let root = new_view("NSVisualEffectView", rect(0., 0., 480., 120.));
-        let _: () = msg_send![&*root,setMaterial:21isize];
-        let _: () = msg_send![&*root,setBlendingMode:0isize];
-        let _: () = msg_send![&*root,setState:1isize];
-        rounded(&*root as *const _ as *mut _, 22., color(0.98, 0.98, 0.96));
-        let appearance: *mut AnyObject =
-            msg_send![class!(NSAppearance),appearanceNamed:&*ns("NSAppearanceNameAqua")];
-        let _: () = msg_send![&*root,setAppearance:appearance];
+        let root = new_view("NSView", rect(0., 0., 480., 120.));
+        theme::surface(&*root as *const _ as *mut _, theme::tokens().radius.window);
         let _: () = msg_send![&*window,setContentView:&*root];
         let inputbox = new_view("NSView", rect(14., 48., 452., 56.));
-        rounded(&*inputbox as *const _ as *mut _, 12., color(1., 1., 0.99));
+        rounded(
+            &*inputbox as *const _ as *mut _,
+            theme::tokens().radius.control,
+            themed(Role::Surface),
+        );
         let layer: *mut AnyObject = msg_send![&*inputbox, layer];
         let _: () = msg_send![layer,setBorderWidth:1.0f64];
-        let border: *const c_void = msg_send![color(0.85, 0.89, 0.83), CGColor];
+        let border: *const c_void = msg_send![themed(Role::Rule), CGColor];
         let _: () = msg_send![layer,setBorderColor:border];
         let _: () = msg_send![&*root,addSubview:&*inputbox];
         let input = new_view("NSTextField", rect(27., 61., 380., 28.));
@@ -495,8 +501,12 @@ impl Controller {
         let _: () = msg_send![&*submit,setTitle:&*ns("↵")];
         let _: () = msg_send![&*submit,setBordered:false];
         let _: () = msg_send![&*submit,setFont:font(18.,0.3)];
-        let _: () = msg_send![&*submit,setContentTintColor:color(1.,1.,1.)];
-        rounded(&*submit as *const _ as *mut _, 8., green);
+        let _: () = msg_send![&*submit,setContentTintColor:themed(Role::OnAccent)];
+        rounded(
+            &*submit as *const _ as *mut _,
+            theme::tokens().radius.control,
+            accent,
+        );
         let _: () = msg_send![&*submit,setTarget:self];
         let _: () = msg_send![&*submit,setAction:sel!(submit:)];
         let _: () = msg_send![&*submit,setAccessibilityLabel:&*ns("Switch to app")];
@@ -510,6 +520,7 @@ impl Controller {
             gray,
         );
         let mut state = self.ivars().borrow_mut();
+        state.prompt_dark = theme::is_dark();
         state.window = Some(window);
         state.input = Some(input);
         state.detail = Some(detail);
@@ -519,11 +530,15 @@ impl Controller {
         let state = self.ivars().borrow();
         if let Some(label) = &state.detail {
             let _: () = msg_send![&**label,setStringValue:&*ns(text)];
-            let _: () = msg_send![&**label,setTextColor:if error{color(0.67,0.30,0.21)}else{color(0.44,0.49,0.44)}];
+            let _: () = msg_send![&**label,setTextColor:if error{themed(Role::Error)}else{themed(Role::Sub)}];
             let _: () = msg_send![&**label,setToolTip:&*ns(text)];
         }
     }
     unsafe fn show_prompt(&self) {
+        let changed = self.ivars().borrow().prompt_dark != theme::is_dark();
+        if changed {
+            self.build();
+        }
         if self.ivars().borrow().setup.is_some() {
             self.show_setup();
             return;
@@ -554,7 +569,7 @@ impl Controller {
         let screen: *mut AnyObject = msg_send![class!(NSScreen), mainScreen];
         if !screen.is_null() {
             let frame: NSRect = msg_send![screen, visibleFrame];
-            let _: () = msg_send![&**window,setFrameOrigin:NSPoint::new(frame.origin.x+(frame.size.width-480.)/2.,frame.origin.y+frame.size.height*0.55-60.)];
+            let _: () = msg_send![&**window,setFrameOrigin:NSPoint::new(frame.origin.x+(frame.size.width-480.)/2.,frame.origin.y+frame.size.height*0.52-60.)];
         }
         let app: *mut AnyObject = msg_send![class!(NSApplication), sharedApplication];
         let _: () = msg_send![app,activateIgnoringOtherApps:true];
@@ -698,10 +713,7 @@ impl Controller {
         };
         let _: () = msg_send![&*window,setTitle:&*ns(&format!("Switched to {name}"))];
         let root = new_view("NSView", rect(0., 0., 380., 104.));
-        rounded(&*root as *const _ as *mut _, 18., color(0.96, 0.98, 0.94));
-        let appearance: *mut AnyObject =
-            msg_send![class!(NSAppearance),appearanceNamed:&*ns("NSAppearanceNameAqua")];
-        let _: () = msg_send![&*root,setAppearance:appearance];
+        theme::surface(&*root as *const _ as *mut _, theme::tokens().radius.window);
         let _: () = msg_send![&*window,setContentView:&*root];
         if let Some((_, _, native)) = app {
             let image: *mut AnyObject = msg_send![native, icon];
@@ -716,7 +728,7 @@ impl Controller {
             rect(106., 61., 232., 23.),
             14.,
             0.4,
-            color(0.12, 0.27, 0.21),
+            themed(Role::Ink),
         );
         let reason = label(
             &*root as *const _ as *mut _,
@@ -724,10 +736,11 @@ impl Controller {
             rect(106., 24., 252., 34.),
             11.5,
             0.,
-            color(0.38, 0.45, 0.39),
+            themed(Role::Sub),
         );
         let _: () = msg_send![&*reason,setMaximumNumberOfLines:2isize];
         let cell: *mut AnyObject = msg_send![&*reason, cell];
+        let _: () = msg_send![cell,setUsesSingleLineMode:false];
         let _: () = msg_send![cell,setWraps:true];
         let mascot = mascot::Mascot::new(
             &*root as *const _ as *mut _,
@@ -735,14 +748,10 @@ impl Controller {
             mascot::Pose::Switch,
         );
         let track = new_view("NSView", rect(18., 12., 344., 3.));
-        rounded(&*track as *const _ as *mut _, 1.5, color(0.84, 0.89, 0.82));
+        rounded(&*track as *const _ as *mut _, 1.5, themed(Role::Rule));
         let _: () = msg_send![&*root,addSubview:&*track];
         let progress = new_view("NSView", rect(0., 0., 344., 3.));
-        rounded(
-            &*progress as *const _ as *mut _,
-            1.5,
-            color(0.38, 0.61, 0.43),
-        );
+        rounded(&*progress as *const _ as *mut _, 1.5, themed(Role::Accent));
         let _: () = msg_send![&*track,addSubview:&*progress];
         let screen: *mut AnyObject = msg_send![class!(NSScreen), mainScreen];
         let frame: NSRect = msg_send![screen, visibleFrame];
@@ -1198,11 +1207,23 @@ pub unsafe fn run(prompt: bool) -> Result<()> {
     });
     let app: *mut AnyObject = msg_send![class!(NSApplication), sharedApplication];
     let _: bool = msg_send![app,setActivationPolicy:1isize];
+    #[cfg(feature = "native-smoke")]
+    if let Ok(mode) = std::env::var("TAFO_SMOKE_APPEARANCE") {
+        let name = if mode == "dark" {
+            "NSAppearanceNameDarkAqua"
+        } else {
+            "NSAppearanceNameAqua"
+        };
+        let appearance: *mut AnyObject = msg_send![class!(NSAppearance),appearanceNamed:&*ns(name)];
+        let _: () = msg_send![app,setAppearance:appearance];
+    }
+
     let controller = Controller::new(
         _mtm,
         State {
             window: None,
             setup: None,
+            prompt_dark: false,
             input: None,
             detail: None,
             submit: None,
