@@ -1,6 +1,6 @@
 // Rendering and query transport only. All aggregates and pattern rules live in BAML.
 export const SNAPSHOT_QUERY =
-  "SELECT span_id, start_time, output_value AS snapshot FROM spans WHERE span_name = 'smart_switch.dashboard' ORDER BY start_time DESC LIMIT 1";
+  "SELECT span_id, start_time, output_value AS snapshot FROM spans WHERE span_id = (SELECT span_id FROM spans WHERE span_name = 'smart_switch.dashboard' ORDER BY start_time DESC LIMIT 1)";
 const common = {
   "com.openai.codex": "Codex",
   "com.anthropic.claudefordesktop": "Claude",

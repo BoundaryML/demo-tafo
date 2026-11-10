@@ -4,7 +4,10 @@ import { SNAPSHOT_QUERY, appName, time, capturedValue } from "./metrics.mjs";
 test("dashboard reads the latest BAML aggregate without interpolated input", () => {
   assert.match(SNAPSHOT_QUERY, /^SELECT /);
   assert.match(SNAPSHOT_QUERY, /smart_switch\.dashboard/);
-  assert.match(SNAPSHOT_QUERY, /ORDER BY start_time DESC LIMIT 1$/);
+  assert.match(
+    SNAPSHOT_QUERY,
+    /WHERE span_id = \(SELECT span_id FROM spans WHERE span_name = .*ORDER BY start_time DESC LIMIT 1\)$/,
+  );
   assert.ok(!SNAPSHOT_QUERY.includes("${"));
 });
 test("display names resolve Codex identity and observed app names", () => {
