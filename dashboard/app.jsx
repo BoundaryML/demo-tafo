@@ -738,8 +738,15 @@ function App() {
         <div className="skeleton" aria-label="Loading patterns" />
       ) : !view ? (
         <div className="empty">
-          <h2>Waiting for your Mac</h2>
-          <p>Open Tafo to publish its first BAML activity summary.</p>
+          <h2>No activity in this environment</h2>
+          <p>
+            Use the environment menu above to switch to Personal, dev, or
+            Production.
+          </p>
+          <p>
+            Local builds publish to Personal. Release builds publish to
+            Production.
+          </p>
         </div>
       ) : (
         <>
