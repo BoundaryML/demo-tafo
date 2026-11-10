@@ -14,7 +14,8 @@ scenario, measured switching latency, learning progress, and observed app patter
 
 Download the Apple Silicon ZIP from [Releases](https://github.com/BoundaryML/demo-tafo/releases),
 unzip it, and move **Tafo.app** to Applications. Open it and enable its Accessibility
-permission. No Rust or BAML installation is required. These previews are ad-hoc
+permission. First launch walks you through permission and a real shortcut test;
+you can reopen it from **Setup…** in the menu. No Rust or BAML installation is required. These previews are ad-hoc
 signed, not Apple-notarized; macOS may require approval in Privacy & Security.
 
 Tagged releases include a write-only telemetry key for the production Cloud
@@ -22,9 +23,12 @@ environment. Manual CI previews use the separate shared dev environment. They up
 pausing tracking stops capture and background predictions. Source builds leave
 Cloud off by default. No model API key is distributed.
 
-For semantic predictions, put `JEV_API_KEY=...` in
+**Model settings…** in setup opens the optional private credential file. Save it
+and restart Tafo after adding a key. For semantic predictions, put `JEV_API_KEY=...` in
 `~/Library/Application Support/Smart Switch/.env` and set its permissions to `600`.
 Exact app-name matching and recent-app switching work without it.
+
+![First-launch setup](docs/images/first-launch.jpg)
 
 ## Build from source
 

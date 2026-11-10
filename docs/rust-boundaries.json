@@ -348,6 +348,20 @@
         "run"
       ],
       "reason": "Bootstraps the AppKit event loop, worker threads, private Unix control socket, status menu, and Accessibility registration."
+    },
+    {
+      "functions": [
+        "setup",
+        "finish_setup_action",
+        "model_setup"
+      ],
+      "reason": "Routes native AppKit setup menu and button selectors to permission checks, secure configuration-file access, and the onboarding window."
+    },
+    {
+      "functions": [
+        "AXIsProcessTrustedWithOptions"
+      ],
+      "reason": "Calls the macOS Accessibility registration prompt only after the user presses the setup permission button; the system, not the app, grants the permission."
     }
   ],
   "src/native/cycler.rs": [
@@ -430,6 +444,39 @@
         "tracking_menu"
       ],
       "reason": "Constructs native NSMenu/NSMenuItem controls and their Objective-C target/action bindings."
+    }
+  ],
+  "src/native/setup.rs": [
+    {
+      "functions": [
+        "show_setup",
+        "render_setup"
+      ],
+      "reason": "Builds and updates the native AppKit onboarding window using generated BAML setup status; renders permission guidance, shortcut verification, optional model configuration and the build telemetry destination."
+    },
+    {
+      "functions": [
+        "poll_setup"
+      ],
+      "reason": "Polls macOS Accessibility trust on a native timer, retries the actual event tap and observes physical shortcut events while setup is visible; suspends foreground capture during onboarding."
+    },
+    {
+      "functions": [
+        "finish_setup"
+      ],
+      "reason": "Persists the private host first-launch acknowledgement and closes the native setup window only after keyboard access and an observed shortcut event."
+    },
+    {
+      "functions": [
+        "open_model_config"
+      ],
+      "reason": "Creates an owner-only optional model credential file without overwriting existing secrets and opens it using NSWorkspace; no shell execution or credential tracing."
+    },
+    {
+      "functions": [
+        "open_access_settings"
+      ],
+      "reason": "Registers the app with the native macOS Accessibility prompt and opens the specific System Settings pane when requested from setup."
     }
   ]
 }

@@ -1,11 +1,11 @@
 use super::*;
 
-unsafe fn tint(selector: Sel) -> *mut AnyObject {
+pub(super) unsafe fn tint(selector: Sel) -> *mut AnyObject {
     // All colors follow the user's macOS appearance.
     let color: *mut AnyObject = msg_send![class!(NSColor), performSelector:selector];
     color
 }
-unsafe fn text(
+pub(super) unsafe fn text(
     parent: *mut AnyObject,
     value: &str,
     frame: NSRect,
@@ -27,12 +27,17 @@ unsafe fn text(
     );
     let _: () = msg_send![&*view,setToolTip:&*ns(value)];
 }
-unsafe fn fill(parent: *mut AnyObject, frame: NSRect, tint: *mut AnyObject, radius: f64) {
+pub(super) unsafe fn fill(
+    parent: *mut AnyObject,
+    frame: NSRect,
+    tint: *mut AnyObject,
+    radius: f64,
+) {
     let view = new_view("NSView", frame);
     rounded(&*view as *const _ as *mut _, radius, tint);
     let _: () = msg_send![parent,addSubview:&*view];
 }
-unsafe fn button(
+pub(super) unsafe fn button(
     parent: *mut AnyObject,
     title: &str,
     frame: NSRect,

@@ -3,6 +3,7 @@ mod cycler;
 mod tracking;
 use tracking::tracking_menu;
 mod journal;
+mod setup;
 use objc2::rc::Retained;
 use objc2::runtime::{AnyObject, Sel};
 use objc2::{class, define_class, msg_send, sel, DefinedClass, MainThreadOnly};
@@ -33,6 +34,8 @@ extern "C" {}
 #[link(name = "ApplicationServices", kind = "framework")]
 extern "C" {
     fn AXIsProcessTrusted() -> bool;
+    fn AXIsProcessTrustedWithOptions(options: *const c_void) -> bool;
+    static kAXTrustedCheckOptionPrompt: *mut AnyObject;
     fn CGEventTapCreate(
         location: u32,
         place: u32,
@@ -253,6 +256,11 @@ unsafe fn install_tap() -> bool {
     if !AXIsProcessTrusted() {
         return false;
     }
+    let existing = TAP.load(Ordering::Relaxed);
+    if !existing.is_null() {
+        CGEventTapEnable(existing, true);
+        return true;
+    }
     let tap = CGEventTapCreate(
         1,
         0,
@@ -344,6 +352,7 @@ struct Toast {
 }
 struct State {
     window: Option<Retained<AnyObject>>,
+    setup: Option<setup::SetupWindow>,
     input: Option<Retained<AnyObject>>,
     detail: Option<Retained<AnyObject>>,
     submit: Option<Retained<AnyObject>>,
@@ -412,7 +421,10 @@ define_class!(
         #[unsafe(method(submit:))] fn submit(&self,_:*mut AnyObject){unsafe{self.submit_request();}}
         #[unsafe(method(recent:))] fn recent(&self,sender:*mut AnyObject){unsafe{let index:isize=msg_send![sender,tag];let id=self.ivars().borrow().pending.as_ref().and_then(|s|s.apps.iter().filter(|a|a.bundle_id!=s.current_app_id).nth(index as usize)).map(|a|a.bundle_id.clone());if let Some(id)=id{match activate(&id){Ok(())=>{self.hide(false);self.show_toast(&id,"Selected from your recent apps.");},Err(error)=>self.show_error(&error)}}}}
         #[unsafe(method(quit:))] fn quit(&self,_:*mut AnyObject){let _=self.ivars().borrow().activity.save(&storage_dir().join("activity.json"));unsafe{let app:*mut AnyObject=msg_send![class!(NSApplication),sharedApplication];let _:()=msg_send![app,terminate:NIL];}}
-        #[unsafe(method(access:))] fn access(&self,_:*mut AnyObject){unsafe{let url:*mut AnyObject=msg_send![class!(NSURL),URLWithString:&*ns("x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")];let _:bool=msg_send![workspace(),openURL:url];}}
+        #[unsafe(method(setup:))] fn setup(&self,_:*mut AnyObject){unsafe{self.show_setup();}}
+        #[unsafe(method(finishSetup:))] fn finish_setup_action(&self,_:*mut AnyObject){unsafe{self.finish_setup();}}
+        #[unsafe(method(modelSetup:))] fn model_setup(&self,_:*mut AnyObject){unsafe{self.open_model_config();}}
+        #[unsafe(method(access:))] fn access(&self,_:*mut AnyObject){unsafe{self.open_access_settings();}}
         #[unsafe(method(tick:))] fn tick(&self,_:*mut AnyObject){unsafe{self.on_tick();}}
         #[unsafe(method(control:textView:doCommandBySelector:))]
         fn command(&self,_:*mut AnyObject,_:*mut AnyObject,selector:Sel)->bool{if selector==sel!(cancelOperation:){unsafe{self.hide(true);}true}else{false}}
@@ -510,6 +522,10 @@ impl Controller {
         }
     }
     unsafe fn show_prompt(&self) {
+        if self.ivars().borrow().setup.is_some() {
+            self.show_setup();
+            return;
+        }
         self.cancel_cycle();
         let history = self.ivars().borrow().history.clone();
         let context = match snapshot(&history) {
@@ -590,6 +606,10 @@ impl Controller {
         }
     }
     unsafe fn tap_switch(&self) {
+        if self.ivars().borrow().setup.is_some() {
+            self.show_setup();
+            return;
+        }
         if self.advance_cycle() {
             return;
         }
@@ -753,6 +773,9 @@ impl Controller {
         }
     }
     unsafe fn on_tick(&self) {
+        if self.poll_setup() {
+            return;
+        }
         self.receive_tracking();
         self.receive_cycle();
         let summaries = self
@@ -1170,6 +1193,7 @@ pub unsafe fn run(prompt: bool) -> Result<()> {
         _mtm,
         State {
             window: None,
+            setup: None,
             input: None,
             detail: None,
             submit: None,
@@ -1232,6 +1256,7 @@ pub unsafe fn run(prompt: bool) -> Result<()> {
         ("Ask where to go…", sel!(prompt:)),
         ("Switch using workflow", sel!(tap:)),
         ("Activity & switch reasons…", sel!(activity:)),
+        ("Setup…", sel!(setup:)),
         ("Keyboard access settings…", sel!(access:)),
         ("Quit Smart Switch", sel!(quit:)),
     ] {
@@ -1253,7 +1278,9 @@ pub unsafe fn run(prompt: bool) -> Result<()> {
     ACCESS.store(install_tap(), Ordering::Relaxed);
     let timer: *mut AnyObject = msg_send![class!(NSTimer),scheduledTimerWithTimeInterval:0.016f64, target:&*controller, selector:sel!(tick:), userInfo:NIL, repeats:true];
     controller.ivars().borrow_mut().timer = Retained::retain(timer);
-    if prompt || !ACCESS.load(Ordering::Relaxed) {
+    if !storage_dir().join("setup-v1.json").exists() || !ACCESS.load(Ordering::Relaxed) {
+        controller.show_setup();
+    } else if prompt {
         controller.show_prompt();
     }
     let _: () = msg_send![app, run];

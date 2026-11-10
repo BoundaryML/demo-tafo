@@ -27,6 +27,7 @@ jobs:
       BAML_TELEMETRY: "off"
       BOUNDARY_API_KEY: local
       SMART_SWITCH_CLOUD: ${{ (github.event_name == 'push' || inputs.telemetry == true) && '1' || '0' }}
+      TAFO_CLOUD_LABEL: ${{ vars.TAFO_TELEMETRY_ENVIRONMENT }}
       TAFO_EMBED_TELEMETRY: ${{ (github.event_name == 'push' || inputs.telemetry == true) && '1' || '0' }}
     steps:
       - uses: actions/checkout@v7
@@ -45,7 +46,7 @@ jobs:
           if not project or not environment:
               raise SystemExit('Set TAFO_TELEMETRY_PROJECT and TAFO_TELEMETRY_ENVIRONMENT repository variables')
           path = Path('baml.toml')
-          text = path.read_text().replace('embed_telemetry_env = "personal"', 'embed_telemetry_env = ' + json.dumps(environment))
+          text = path.read_text().replace('embed_telemetry_env = "dev"', 'embed_telemetry_env = ' + json.dumps(environment))
           path.write_text(text + '\n[boundary]\nproject = ' + json.dumps(project) + '\n')
           PY
       - name: Package app and matching BAML runtime
@@ -86,4 +87,4 @@ jobs:
         run: |
           gh release create "$RELEASE_TAG" release/* --verify-tag --prerelease \
             --title "Tafo $RELEASE_TAG" \
-            --notes 'Apple Silicon development preview. Download the ZIP, move Tafo.app to Applications, and open it. Includes the matching BAML runtime and write-only telemetry for the production environment. Ad-hoc signed, not notarized. See README for model configuration and privacy details.'
+            --notes 'Apple Silicon preview. Download the ZIP, move Tafo.app to Applications, and open it. Includes the matching BAML runtime and write-only telemetry for the production environment. Ad-hoc signed, not notarized. See README for model configuration and privacy details.'

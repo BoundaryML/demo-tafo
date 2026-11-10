@@ -44,4 +44,4 @@ BOUNDARY_API_KEY = "BOUNDARY_API_KEY"
 
 [bridge.build]
 embed_telemetry_api_key_from_env_var = "TAFO_TELEMETRY_KEY"
-embed_telemetry_env = "personal"
+embed_telemetry_env = "dev"
