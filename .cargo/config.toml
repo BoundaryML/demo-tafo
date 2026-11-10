@@ -1,0 +1,2 @@
+[env]
+BAML_TELEMETRY = { value = "off", force = false }

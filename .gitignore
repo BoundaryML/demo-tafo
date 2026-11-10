@@ -1,0 +1,14 @@
+.DS_Store
+.env
+.env.*
+!.env.example
+.build/
+dist/
+target/
+baml_sdk/
+.baml/
+.baml_cache/
+**/baml-old_skills/
+**/__pycache__/
+node_modules/
+dashboard/dist/

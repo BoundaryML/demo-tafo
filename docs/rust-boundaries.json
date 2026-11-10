@@ -1,0 +1,435 @@
+{
+  "src/main.rs": [
+    {
+      "functions": [
+        "main"
+      ],
+      "reason": "Owns the native executable entry point and AppKit autorelease pool; reports process exit failures."
+    },
+    {
+      "functions": [
+        "run"
+      ],
+      "reason": "Parses native CLI arguments, connects to the existing control socket, launches AppKit or calls the generated BAML SDK, and exposes the official bridge-library cache path for app packaging."
+    }
+  ],
+  "src/lib.rs": [
+    {
+      "functions": [
+        "record"
+      ],
+      "reason": "Calls the generated BAML SDK with native inputs and applies its typed result. History rules and OS-list parsing are defined in BAML; there is no handwritten wire format."
+    },
+    {
+      "functions": [
+        "load"
+      ],
+      "reason": "Reads host-owned history JSON from a filesystem path; missing history initializes an empty host cache."
+    },
+    {
+      "functions": [
+        "save"
+      ],
+      "reason": "Delegates history persistence to the shared Unix-private atomic JSON writer."
+    },
+    {
+      "functions": [
+        "ordered_bundle_ids"
+      ],
+      "reason": "Calls the generated BAML SDK with native inputs and applies its typed result. History rules and OS-list parsing are defined in BAML; there is no handwritten wire format."
+    },
+    {
+      "functions": [
+        "down",
+        "held",
+        "up",
+        "cancel",
+        "is_down"
+      ],
+      "reason": "Maintains physical key state and monotonic tap/hold timing inside the CGEvent callback. IPC or model execution here would stall the macOS event tap; the 600 ms threshold is an input gesture."
+    },
+    {
+      "functions": [
+        "storage_dir"
+      ],
+      "reason": "Locates the macOS Application Support directory or isolated host test-state override."
+    },
+    {
+      "functions": [
+        "config_path",
+        "parse_environment"
+      ],
+      "reason": "Loads the native credential file through a restricted allowlist before generated SDK initialization. Never executes shell/profile content or sends credentials through request tracing."
+    },
+    {
+      "functions": [
+        "choose",
+        "predict",
+        "request"
+      ],
+      "reason": "Supplies native persisted activity and build configuration to the generated decision entry point on a worker thread. The generated SDK owns invocation, types, cancellation and runtime calls."
+    },
+    {
+      "functions": [
+        "tracking"
+      ],
+      "reason": "Supplies host-local DST-safe calendar boundaries and native menu input to generated tracking calls. BAML validates action names and computes pause/resume state."
+    },
+    {
+      "functions": [
+        "dashboard"
+      ],
+      "reason": "Supplies system-local calendar boundaries and the immediate persisted capture gate to the generated dashboard call. Aggregation and per-invocation trace policy run in BAML."
+    },
+    {
+      "functions": [
+        "summarize"
+      ],
+      "reason": "Passes the native activity buffer to the generated summary function used by AppKit. The summary type and all aggregation logic are generated from BAML."
+    },
+    {
+      "functions": [
+        "cycle_start",
+        "cycle_next",
+        "cycle_cancel",
+        "cycle_end",
+        "cycle_end_timed"
+      ],
+      "reason": "Supplies native input indices, calendar timestamps and actual activation timing to generated cycle calls. BAML owns cycle state, ordering, feedback, and trace hooks; this is a native-call convenience facade."
+    },
+    {
+      "functions": [
+        "at"
+      ],
+      "reason": "Computes frame-by-frame native toast animation and accessibility reduced-motion rendering without any model or IPC dependency."
+    },
+    {
+      "functions": [
+        "cloud_tracing_enabled"
+      ],
+      "reason": "Reads the native build-time cloud setting before SDK initialization; the generated bridge uses regular recording mode for live builds and BAML hooks own per-operation context."
+    },
+    {
+      "functions": [
+        "initialize_runtime"
+      ],
+      "reason": "Startup-only host initialization: loads the restricted credential file, selects the build-time telemetry setting, locates the bundled native runtime library, and initializes the generated SDK before worker threads start. Per-operation tracing policy lives in BAML hooks."
+    },
+    {
+      "functions": [
+        "source_name"
+      ],
+      "reason": "Formats the generated selection-source enum as a native UI label without introducing duplicate wire types or a foreign-trait wrapper."
+    },
+    {
+      "functions": [
+        "live",
+        "offline"
+      ],
+      "reason": "Selects the host build configuration for live application calls versus isolated tests. Does not own BAML runtime state or create subprocesses."
+    }
+  ],
+  "src/activity.rs": [
+    {
+      "functions": [
+        "default"
+      ],
+      "reason": "Initializes the native in-memory/persisted activity schema and its nonpersisted capture cursor. It does not classify or rank activity."
+    },
+    {
+      "functions": [
+        "set_tracking"
+      ],
+      "reason": "Applies the BAML tracking state to the native capture gate and clears the transient cursor so paused time cannot leak into the next OS interval."
+    },
+    {
+      "functions": [
+        "record_workflow",
+        "record_decision"
+      ],
+      "reason": "Calls generated BAML functions and installs returned typed notes or decisions into native buffers. No manual JSON request/reply conversion remains."
+    },
+    {
+      "functions": [
+        "observe"
+      ],
+      "reason": "Passes system calendar boundaries and OS timing measurements to the generated capture function, then applies its typed delta to native memory. Only the current visit is encoded; the CGEvent callback never calls BAML."
+    },
+    {
+      "functions": [
+        "prune"
+      ],
+      "reason": "Passes timestamp metadata to the generated BAML retention function and applies its returned index plan to native buffers. All retention durations and limits live in BAML."
+    },
+    {
+      "functions": [
+        "load",
+        "save",
+        "save_private_json"
+      ],
+      "reason": "Reads/writes the host state schema with Unix 0700 directory and 0600 file permissions plus atomic replacement. BAML does not own the native state files."
+    },
+    {
+      "functions": [
+        "display_name",
+        "duration"
+      ],
+      "reason": "Formats cached native UI labels without per-label IPC. Canonical BAML names and duration strings also exist for the independent cloud view; these presentation helpers make no switching decisions."
+    },
+    {
+      "functions": [
+        "unix_now"
+      ],
+      "reason": "Reads the host operating system wall clock for captured OS events."
+    },
+    {
+      "functions": [
+        "local_time",
+        "local_day_start",
+        "short_time",
+        "local_day_ago"
+      ],
+      "reason": "Uses the system local calendar and libc DST rules to format native labels and supply correct calendar boundaries to BAML."
+    },
+    {
+      "functions": [
+        "prediction_key"
+      ],
+      "reason": "Serializes the exact native cached-request inputs into a cache identity; includes settled feedback so stale predictions are invalidated."
+    },
+    {
+      "functions": [
+        "as_data"
+      ],
+      "reason": "Projects native disk/capture state into the generated ActivityData value for SDK calls; transient native cursor and filesystem-only decisions stay outside that input."
+    }
+  ],
+  "src/native.rs": [
+    {
+      "functions": [
+        "AXIsProcessTrusted",
+        "CGEventTapCreate",
+        "CGEventGetIntegerValueField",
+        "CGEventGetFlags",
+        "CGEventSourceSecondsSinceLastEventType",
+        "CGEventTapEnable",
+        "CFMachPortCreateRunLoopSource",
+        "CFRunLoopGetMain",
+        "CFRunLoopAddSource"
+      ],
+      "reason": "Foreign declarations for macOS Accessibility, event taps, idle measurements, and the CoreFoundation main run loop. These APIs require native ABI access."
+    },
+    {
+      "functions": [
+        "report_local_error"
+      ],
+      "reason": "Reports generated SDK state-update failures at the native capture boundary rather than silently dropping failed updates."
+    },
+    {
+      "functions": [
+        "rect",
+        "ns",
+        "string",
+        "owned",
+        "new_view",
+        "color",
+        "font",
+        "rounded",
+        "label"
+      ],
+      "reason": "Bridges AppKit geometry, Objective-C object ownership, strings, layers, fonts, colors, and native view construction."
+    },
+    {
+      "functions": [
+        "workspace",
+        "front",
+        "running"
+      ],
+      "reason": "Reads NSWorkspace/NSRunningApplication inventory and foreground status; filters native activation policies and terminated processes."
+    },
+    {
+      "functions": [
+        "snapshot"
+      ],
+      "reason": "Collects NSWorkspace/lsappinfo observations and supplies them to the generated snapshot_context function. BAML supplies focus fallback, canonical names, aliases, observed recency and ordering."
+    },
+    {
+      "functions": [
+        "activate"
+      ],
+      "reason": "Invokes NSRunningApplication activation and reports whether macOS accepted the focus request."
+    },
+    {
+      "functions": [
+        "now"
+      ],
+      "reason": "Provides a process-local monotonic clock for physical key gestures."
+    },
+    {
+      "functions": [
+        "key_event",
+        "install_tap"
+      ],
+      "reason": "Implements the C event-tap callback and registers it with the macOS run loop; swallows shortcut events and queues actions without running BAML in the callback."
+    },
+    {
+      "functions": [
+        "control"
+      ],
+      "reason": "Connects to the listener Unix socket with OS read/write deadlines for CLI and integration control."
+    },
+    {
+      "functions": [
+        "dismiss",
+        "prompt",
+        "activity",
+        "today",
+        "month",
+        "recording",
+        "tracking",
+        "tap",
+        "cycle_pick",
+        "submit",
+        "recent",
+        "quit",
+        "access",
+        "tick",
+        "command",
+        "closing"
+      ],
+      "reason": "Objective-C selectors required by AppKit target/action, timer, window delegate, and responder-chain APIs. They dispatch native input/actions and window lifetime changes."
+    },
+    {
+      "functions": [
+        "new"
+      ],
+      "reason": "Constructs the Objective-C Controller with main-thread ownership and native ivars."
+    },
+    {
+      "functions": [
+        "build",
+        "detail",
+        "show_prompt",
+        "hide",
+        "show_error",
+        "show_activity"
+      ],
+      "reason": "Constructs and updates native windows, focus, text fields, accessibility presentation, and journal visibility on the AppKit main thread."
+    },
+    {
+      "functions": [
+        "submit_request",
+        "tap_switch",
+        "resolve"
+      ],
+      "reason": "Coordinates native input and cached BAML results across worker channels, preserving UI generation tokens and queued physical taps. Does not choose or rank destinations."
+    },
+    {
+      "functions": [
+        "show_toast",
+        "animate_toast"
+      ],
+      "reason": "Creates a nonactivating AppKit feedback panel and animates its frame/opacity while respecting native reduced-motion settings."
+    },
+    {
+      "functions": [
+        "on_tick"
+      ],
+      "reason": "Drains native worker replies, physical-key actions, and control-socket messages on the AppKit main thread; samples foreground/idle time and schedules background work. Portable capture and prediction rules run in BAML."
+    },
+    {
+      "functions": [
+        "install_edit_menu"
+      ],
+      "reason": "Installs the AppKit responder-chain Edit menu so clipboard paste and dictation transcript insertion work in native text fields."
+    },
+    {
+      "functions": [
+        "run"
+      ],
+      "reason": "Bootstraps the AppKit event loop, worker threads, private Unix control socket, status menu, and Accessibility registration."
+    }
+  ],
+  "src/native/cycler.rs": [
+    {
+      "functions": [
+        "previewing"
+      ],
+      "reason": "Reflects whether the native host has actually applied the BAML fast choice or must display its current preview."
+    },
+    {
+      "functions": [
+        "begin_cycle",
+        "advance_cycle",
+        "pick_cycle",
+        "send_cycle_input"
+      ],
+      "reason": "Coordinates native cycle UI lifetime, input timestamps, queued taps, and worker request tokens. Stable choice order and advancing are BAML-owned."
+    },
+    {
+      "functions": [
+        "expire_cycle",
+        "finish_cycle",
+        "cancel_cycle"
+      ],
+      "reason": "Coordinates the native settle timer, OS activation, cancellation focus restoration, and measured activation timings. BAML computes the resulting cycle event and learning data."
+    },
+    {
+      "functions": [
+        "receive_cycle"
+      ],
+      "reason": "Applies asynchronous BAML cycle replies on the AppKit main thread, rejects obsolete tokens, and records actual OS activation timing."
+    },
+    {
+      "functions": [
+        "show_cycle"
+      ],
+      "reason": "Renders the BAML-provided visible indices, native app icons, selected state, and page positions in a nonactivating AppKit panel."
+    }
+  ],
+  "src/native/journal.rs": [
+    {
+      "functions": [
+        "tint",
+        "text",
+        "fill",
+        "button",
+        "icon"
+      ],
+      "reason": "Creates native AppKit journal typography, controls, color layers, and NSRunningApplication icons."
+    },
+    {
+      "functions": [
+        "render_activity"
+      ],
+      "reason": "Lays out and renders the BAML activity summary in AppKit; formats native presentation labels and scroll geometry."
+    },
+    {
+      "functions": [
+        "request_activity_summary",
+        "review_workflow"
+      ],
+      "reason": "Queues BAML summary/prediction requests from native UI state, supplies local calendar boundaries, and avoids duplicate outstanding work."
+    }
+  ],
+  "src/native/tracking.rs": [
+    {
+      "functions": [
+        "change_tracking"
+      ],
+      "reason": "Immediately stops native capture before awaiting BAML pause policy, invalidates host caches, and queues the tracking request."
+    },
+    {
+      "functions": [
+        "receive_tracking"
+      ],
+      "reason": "Applies BAML pause/resume replies to native capture state, restarts native timing, and refreshes menu/window labels; schedules expired deadlines back through BAML."
+    },
+    {
+      "functions": [
+        "tracking_menu"
+      ],
+      "reason": "Constructs native NSMenu/NSMenuItem controls and their Objective-C target/action bindings."
+    }
+  ]
+}

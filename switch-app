@@ -1,0 +1,19 @@
+#!/bin/bash
+# This noninteractive script never sources a shell profile.
+set -euo pipefail
+ROOT=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+APP="$ROOT/dist/Smart Switch.app"
+BIN="$APP/Contents/MacOS/SmartSwitch"
+if [[ ! -x "$BIN" ]]; then
+    printf 'Build first: %s/scripts/build.sh\n' "$ROOT" >&2
+    exit 1
+fi
+if [[ $# -eq 0 ]]; then
+    exec "$BIN" --tap
+elif [[ "$1" == --prompt || "$1" == --listen ]]; then
+    exec /usr/bin/open -n "$APP" --args "$1"
+elif [[ "$1" == --* ]]; then
+    exec "$BIN" "$@"
+else
+    exec "$BIN" --text "$*"
+fi

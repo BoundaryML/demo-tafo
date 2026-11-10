@@ -1,0 +1,19 @@
+{
+  "name": "smart-switch-dashboard",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node --test metrics.test.mjs",
+    "format": "prettier --write app.jsx metrics.mjs metrics.test.mjs build.mjs style.css package.json",
+    "format:check": "prettier --check app.jsx metrics.mjs metrics.test.mjs build.mjs style.css package.json"
+  },
+  "dependencies": {
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2",
+    "prettier": "3.9.10"
+  }
+}

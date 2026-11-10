@@ -1,0 +1,47 @@
+[package]
+name = "app-switcher"
+
+[toolchain]
+version = "0.25.3-nightly.20261108.a"
+
+# [scripts]
+# dev = "-f main"
+
+# Add a client generator, then generate its SDK:
+#   baml generate add python/pydantic2
+#   baml generate
+#
+# Run `baml generate add --help` to see every supported output type.
+
+# To opt into Cloud, add your own project after signing in with `baml`:
+# [boundary]
+# project = "your-org/your-project"
+
+[pack]
+on_initial_telemetry_failure = "warn"
+initial_telemetry_warning_message = "Cloud tracing unavailable; app switching continues."
+http_bodies = false
+
+[pack.env_var_names]
+BAML_TELEMETRY = "BAML_TELEMETRY"
+BOUNDARY_PROJECT = "BOUNDARY_PROJECT"
+BOUNDARY_API_KEY = "BOUNDARY_API_KEY"
+
+[generator.rust]
+output_type = "rust"
+naming_convention = "language"
+output_dir = "."
+
+[bridge]
+http_bodies = false
+on_initial_telemetry_failure = "warn"
+initial_telemetry_warning_message = "Cloud tracing unavailable; app switching continues."
+
+[bridge.env_var_names]
+BAML_TELEMETRY = "BAML_TELEMETRY"
+BOUNDARY_PROJECT = "BOUNDARY_PROJECT"
+BOUNDARY_API_KEY = "BOUNDARY_API_KEY"
+
+[bridge.build]
+embed_telemetry_api_key_from_env_var = "TAFO_TELEMETRY_KEY"
+embed_telemetry_env = "personal"

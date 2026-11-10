@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  BAML_TELEMETRY: "off"
+  BOUNDARY_API_KEY: local-test
+  SMART_SWITCH_CLOUD: "0"
+
+jobs:
+  check:
+    name: BAML, Rust, and dashboard
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Check BAML and report code quality
+        uses: BoundaryML/baml-action@v1
+        with:
+          comment: "false"
+      - name: Select the pinned Rust toolchain
+        run: rustup show active-toolchain
+      - name: Generate native Rust SDK
+        run: baml generate
+      - name: Audit Rust boundaries
+        run: python3 scripts/check_rust_boundaries.py
+      - name: Check native formatting
+        run: cargo fmt --check
+      - name: Lint native code
+        run: cargo clippy --locked --all-targets -- -D warnings
+      - name: Test native SDK integration
+        run: cargo test --locked
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: dashboard/package-lock.json
+      - name: Install dashboard dependencies
+        run: npm ci --ignore-scripts
+        working-directory: dashboard
+      - name: Check dashboard formatting
+        run: npm run format:check
+        working-directory: dashboard
+      - name: Test dashboard
+        run: npm test
+        working-directory: dashboard
+      - name: Build self-contained dashboard
+        run: npm run build
+        working-directory: dashboard
